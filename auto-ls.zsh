@@ -40,6 +40,7 @@ auto-ls () {
   if [[ $AUTO_LS_INIT_COMPLETE == false || $AUTO_LS_CHPWD == false ]]; then
     return
   fi
+
   if ! zle                          \
   || { [[ ${WIDGET} != accept-line ]] && [[ ${LASTWIDGET} != .accept-line ]] }\
   || { [[ ${WIDGET} == accept-line ]] && [[ $#BUFFER -eq 0 ]] }; then
@@ -50,7 +51,7 @@ auto-ls () {
         eval $cmd
       else
         # Otherwise run auto-ls function
-        if [[ $BUFFER ]]; then
+        if [[ $BUFFER == cd\ * ]] || [[ $BUFFER == autojump\ * ]] || [[ $BUFFER == j\ * ]] || [[ $BUFFER == z\ * ]] || [[ $BUFFER == wd\ * ]]  || [[ $BUFFER == fasd\ * ]]; then
             auto-ls-$cmd
         fi
       fi
