@@ -17,6 +17,8 @@ if (( ! ${+AUTO_LS_PATH} )); then
   AUTO_LS_PATH=true
 fi
 
+# Initialize auto-ls activation flag
+typeset -g AUTO_LS_INIT_COMPLETE=false
 
 auto-ls-ls () {
   ls --color=auto -a
@@ -31,9 +33,13 @@ auto-ls-git-status () {
 
 auto-ls () {
   # Possible invocation sources:
-  #  1. Called from `chpwd_functions` – show file list
-  #  2. Called by another ZLE plugin (like `dirhistory`) through `zle accept-line` – show file list
-  #  3. Called by ZLE itself – only should file list if prompt was empty
+  #  1. Called from `chpwd_functions` â€“ show file list
+  #  2. Called by another ZLE plugin (like `dirhistory`) through `zle accept-line` â€“ show file list
+  #  3. Called by ZLE itself â€“ only should file list if prompt was empty
+  # Initialize only after setup is complete and only continue if enabled
+  if [[ $AUTO_LS_INIT_COMPLETE == false || $AUTO_LS_CHPWD == false ]]; then
+    return
+  fi
   if ! zle                          \
   || { [[ ${WIDGET} != accept-line ]] && [[ ${LASTWIDGET} != .accept-line ]] }\
   || { [[ ${WIDGET} == accept-line ]] && [[ $#BUFFER -eq 0 ]] }; then
@@ -44,7 +50,9 @@ auto-ls () {
         eval $cmd
       else
         # Otherwise run auto-ls function
-        auto-ls-$cmd
+        if [[ $BUFFER ]]; then
+            auto-ls-$cmd
+        fi
       fi
     done
     zle && zle .accept-line
@@ -58,7 +66,7 @@ auto-ls () {
       echo && zle redisplay
     elif [[ ${WIDGET} != accept-line ]] && [[ ${LASTWIDGET} == .accept-line ]]; then
       # Hack to make only 2 lines appear after `dirlist` navigation
-      # (Uses a VT100 escape sequence to move curser up one line…)
+      # (Uses a VT100 escape sequence to move curser up one lineâ€¦)
       tput cuu 1
     else
       zle .accept-line
